@@ -94,6 +94,23 @@ body {
 	font: bold 16px 'Noto Sans KR', sans-serif;
 }
 
+/* 내려받기가 오래 멈추면 나오는 버튼 */
+#status-retry {
+	display: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(10% - 56px);
+	width: fit-content;
+	margin: 0 auto;
+	padding: 10px 22px;
+	border: 0;
+	border-radius: 999px;
+	background: #e86a34;
+	color: #fff;
+	font: bold 16px 'Noto Sans KR', sans-serif;
+}
+
 #status-notice {
 	background-color: #5b3943;
 	border-radius: 0.5rem;
@@ -222,11 +239,12 @@ S.ready = (async function () {
 			<div id="status-text">삼국머지 불러오는 중…</div>
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
+			<button id="status-retry" type="button" onclick="window.location.reload()">다시 불러오기</button>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38345936,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38347072,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -316,12 +334,24 @@ const engine = new Engine(GODOT_CONFIG);
 		}
 	} else {
 		setStatusMode('progress');
+		// 내려받기가 15초 넘게 그대로면 (모바일 네트워크가 끊긴 경우) 안내와 '다시 불러오기' 버튼을 보입니다
+		const statusRetry = document.getElementById('status-retry');
+		let lastCur = -1, lastChange = Date.now(), lastPct = 0, done = false;
+		const stallTimer = setInterval(function () {
+			if (!initializing || done) { clearInterval(stallTimer); statusRetry.style.display = 'none'; return; }
+			const stalled = Date.now() - lastChange > 15000;
+			statusRetry.style.display = stalled ? 'block' : 'none';
+			if (stalled) statusText.textContent = '연결이 느립니다… ' + lastPct + '%';
+		}, 2000);
 		engine.startGame({
 			'onProgress': function (current, total) {
+				if (current !== lastCur) { lastCur = current; lastChange = Date.now(); }
+				if (total > 0 && current >= total) done = true;   // 다 받은 뒤 엔진 준비 시간은 멈춤으로 보지 않음
 				if (current > 0 && total > 0) {
+					lastPct = Math.min(99, Math.floor(current * 100 / total));
 					statusProgress.value = current;
 					statusProgress.max = total;
-					statusText.textContent = '삼국머지 불러오는 중… ' + Math.min(99, Math.floor(current * 100 / total)) + '%';
+					statusText.textContent = '삼국머지 불러오는 중… ' + lastPct + '%';
 				} else {
 					statusProgress.removeAttribute('value');
 					statusProgress.removeAttribute('max');
