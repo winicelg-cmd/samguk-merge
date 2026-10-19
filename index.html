@@ -136,6 +136,19 @@ window.samguk = { sdk: null, ready: null, env: null, godot: null, backResult: fa
 	window.samgukAudioContexts = list;
 	window.samgukWakeAudio = wake;
 }());
+// 클라우드 저장(scripts/CloudSave.gd): Firestore REST로 읽고 씁니다. 쓰기는 keepalive라 게임을 닫는 순간에도 전송됩니다
+window.samgukCloud = {
+	get: function (url, cb) {
+		fetch(url, { cache: 'no-store' })
+			.then(function (r) { return r.text().then(function (t) { cb(r.status, t); }); })
+			.catch(function () { cb(0, ''); });
+	},
+	put: function (url, body) {
+		try {
+			fetch(url, { method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }).catch(function () {});
+		} catch (e) {}
+	}
+};
 window.samgukBeacon = function (url, body) {
 	try { return navigator.sendBeacon(url, new Blob([body], { type: 'text/plain;charset=UTF-8' })); } catch (e) { return false; }
 };
@@ -199,7 +212,7 @@ S.ready = (async function () {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38331656,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38339340,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
