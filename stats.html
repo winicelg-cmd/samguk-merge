@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>삼국머지 현황판</title>
+<link rel="icon" href="icon192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* 현황판: 위에서부터 '오늘 요약 → 추이 → 어디서 그만두나 → 광고 → 날짜별 표' */
+:root {
+	--bg: #fbf6ec; --card: #ffffff; --ink: #3d2a1c; --ink2: #8a6f5a; --line: #eadfcb;
+	--red: #d6453a; --gold: #e6a52e; --jade: #2f9e7a; --blue: #3b78c2; --grey: #c9bba6;
+	--up: #2f9e7a; --down: #d6453a;
+	--display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+	--body: 'Noto Sans KR', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+	:root { --bg: #1d1712; --card: #2a221b; --ink: #f3e8d8; --ink2: #b9a48d; --line: #3d3228; --grey: #5b4d3f; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 30px; letter-spacing: .5px; }
+h1 .a { color: var(--red); } h1 .b { color: var(--gold); }
+.meta { color: var(--ink2); font-size: 13px; }
+button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 7px 12px; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; min-width: 0; }
+.card h2 { margin: 0 0 4px; font-size: 16px; }
+.card .hint { margin: 0 0 12px; color: var(--ink2); font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.tile .k { color: var(--ink2); font-size: 13px; }
+.tile .v { font-family: var(--display); font-size: 32px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 12px; color: var(--ink2); }
+.d .up { color: var(--up); } .d .down { color: var(--down); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+svg { display: block; width: 100%; height: auto; }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 92px 1fr 52px; align-items: center; gap: 8px; font-size: 14px; }
+.bar .track { height: 14px; background: var(--line); border-radius: 7px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 7px; }
+.bar .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink2); }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink2); margin-top: 6px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink2); font-weight: 700; font-size: 13px; }
+.empty { color: var(--ink2); padding: 24px 0; text-align: center; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--line); color: var(--ink2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<header>
+		<div>
+			<h1><span class="a">삼국</span><span class="b">머지</span> 현황판</h1>
+			<div class="meta" id="meta">불러오는 중…</div>
+		</div>
+		<button id="reload" type="button">새로고침</button>
+	</header>
+
+	<section class="tiles" id="tiles"></section>
+
+	<section class="card">
+		<h2>최근 14일 이용자</h2>
+		<p class="hint">하루에 한 번이라도 게임을 시작한 사람 수예요. 진한 막대는 그날 처음 온 사람이에요.</p>
+		<div id="trend"></div>
+		<div class="legend"><span><i style="background:var(--gold)"></i>다시 온 사람</span><span><i style="background:var(--red)"></i>새로 온 사람</span></div>
+	</section>
+
+	<div class="two">
+		<section class="card">
+			<h2>어디까지 왔나 <span class="pill">최근 7일</span></h2>
+			<p class="hint">그날 처음 켰을 때 몇 장이었는지예요. 한 구간에 몰려 있으면 거기서 그만두는 사람이 많다는 뜻이에요.</p>
+			<div class="bars" id="progress"></div>
+		</section>
+		<section class="card">
+			<h2>어디서 들어왔나 <span class="pill">최근 7일</span></h2>
+			<p class="hint">원스토어 앱 안에서 했는지, 웹 링크(브라우저)로 했는지예요.</p>
+			<div class="bars" id="channel"></div>
+		</section>
+	</div>
+
+	<div class="two">
+		<section class="card">
+			<h2>광고 <span class="pill">최근 7일</span></h2>
+			<p class="hint">원스토어에서 '광고 보기'를 누른 횟수와 결과예요.</p>
+			<div class="bars" id="ads"></div>
+		</section>
+		<section class="card">
+			<h2>게임 안에서 <span class="pill">최근 7일</span></h2>
+			<p class="hint">기력 부족이 너무 많으면 게임이 빡빡하다는 신호예요.</p>
+			<div class="bars" id="play"></div>
+		</section>
+	</div>
+
+	<section class="card">
+		<h2>날짜별</h2>
+		<div class="tbl"><table id="table"></table></div>
+	</section>
+</div>
+<script>
+(function () {
+	var URL = 'https://firestore.googleapis.com/v1/projects/samguk-merge/databases/(default)/documents/stats?pageSize=400';
+	var $ = function (id) { return document.getElementById(id); };
+	function key(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+	function shift(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+	function label(k) { return Number(k.slice(4, 6)) + '/' + Number(k.slice(6, 8)); }
+	function num(n) { return Math.round(n).toLocaleString('ko-KR'); }
+	function get(day, f) { return day ? Number(day[f] || 0) : 0; }
+	function sum(days, f) { return days.reduce(function (a, d) { return a + get(d, f); }, 0); }
+
+	function tiles(today, yest, last7) {
+		var users = get(today, 'users'), u0 = get(yest, 'users');
+		var diff = users - u0;
+		var mins = users ? get(today, 'play_sec') / users / 60 : 0;
+		var t = [
+			['오늘 이용자', num(users) + '명', (diff === 0 ? '어제와 같음' : '<span class="' + (diff > 0 ? 'up">▲ ' : 'down">▼ ') + Math.abs(diff) + '</span> 어제보다')],
+			['새로 온 사람', num(get(today, 'new_users')) + '명', '최근 7일 ' + num(sum(last7, 'new_users')) + '명'],
+			['게임 시작 횟수', num(get(today, 'sessions')) + '번', '1명당 ' + (users ? (get(today, 'sessions') / users).toFixed(1) : '0') + '번'],
+			['1명당 노는 시간', (mins >= 1 ? num(mins) + '분' : (mins > 0 ? '1분 미만' : '-')), '오늘 기준']
+		];
+		$('tiles').innerHTML = t.map(function (x) { return '<div class="tile"><div class="k">' + x[0] + '</div><div class="v">' + x[1] + '</div><div class="d">' + x[2] + '</div></div>'; }).join('');
+	}
+
+	function trend(days, keys) {
+		var W = 640, H = 220, L = 34, R = 8, T = 12, B = 28;
+		var max = Math.max(4, Math.max.apply(null, keys.map(function (k) { return get(days[k], 'users'); })));
+		var step = Math.pow(10, Math.floor(Math.log10(max))); var top = Math.ceil(max / step) * step; if (top / step < 4) { step = step / 2; top = Math.ceil(max / step) * step; }
+		var cw = (W - L - R) / keys.length, bw = Math.max(6, cw * 0.62);
+		var y = function (v) { return T + (H - T - B) * (1 - v / top); };
+		var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="최근 14일 이용자 막대 그래프">';
+		for (var g = 0; g <= top + 1e-9; g += step) {
+			s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="var(--line)" stroke-width="1"/>';
+			s += '<text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end" font-size="11" fill="var(--ink2)">' + num(g) + '</text>';
+		}
+		keys.forEach(function (k, i) {
+			var u = get(days[k], 'users'), n = Math.min(u, get(days[k], 'new_users'));
+			var x = L + cw * i + (cw - bw) / 2;
+			if (u > 0) {
+				s += '<rect x="' + x + '" y="' + y(u) + '" width="' + bw + '" height="' + (y(n) - y(u)) + '" rx="3" fill="var(--gold)"/>';
+				if (n > 0) s += '<rect x="' + x + '" y="' + y(n) + '" width="' + bw + '" height="' + (y(0) - y(n)) + '" rx="3" fill="var(--red)"/>';
+				s += '<text x="' + (x + bw / 2) + '" y="' + (y(u) - 4) + '" text-anchor="middle" font-size="11" fill="var(--ink)">' + u + '</text>';
+			}
+			if (i % 2 === (keys.length - 1) % 2) s += '<text x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="var(--ink2)">' + label(k) + '</text>';
+		});
+		$('trend').innerHTML = s + '</svg>';
+	}
+
+	function bars(id, rows, color) {
+		var max = Math.max(1, Math.max.apply(null, rows.map(function (r) { return r[1]; })));
+		$(id).innerHTML = rows.map(function (r) {
+			return '<div class="bar"><span>' + r[0] + '</span><div class="track"><div class="fill" style="width:' + (100 * r[1] / max) + '%;background:' + (r[2] || color) + '"></div></div><span class="n">' + num(r[1]) + '</span></div>';
+		}).join('');
+	}
+
+	function table(days, keys) {
+		var h = '<tr><th>날짜</th><th>이용자</th><th>새로</th><th>시작</th><th>장 완료</th><th>광고 끝까지</th><th>1명당 분</th></tr>';
+		keys.slice().reverse().forEach(function (k) {
+			var d = days[k]; if (!d) return;
+			var u = get(d, 'users');
+			h += '<tr><td>' + label(k) + '</td><td>' + num(u) + '</td><td>' + num(get(d, 'new_users')) + '</td><td>' + num(get(d, 'sessions')) + '</td><td>' + num(get(d, 'ch_clear')) + '</td><td>' + num(get(d, 'ad_rewarded')) + '</td><td>' + (u ? (get(d, 'play_sec') / u / 60).toFixed(0) : '-') + '</td></tr>';
+		});
+		$('table').innerHTML = h;
+	}
+
+	function render(days) {
+		var now = new Date();
+		var keys14 = []; for (var i = 13; i >= 0; i--) keys14.push(key(shift(now, -i)));
+		var last7 = keys14.slice(7).map(function (k) { return days[k]; }).filter(Boolean);
+		tiles(days[key(now)], days[key(shift(now, -1))], last7);
+		trend(days, keys14);
+		bars('progress', [['서장', sum(last7, 'p0')], ['1~10장', sum(last7, 'p1')], ['11~50장', sum(last7, 'p2')], ['51~150장', sum(last7, 'p3')], ['151장~', sum(last7, 'p4')]], 'var(--blue)');
+		bars('channel', [['원스토어', sum(last7, 'users_onestore'), 'var(--red)'], ['웹 링크', sum(last7, 'users_web'), 'var(--gold)']]);
+		var as = sum(last7, 'ad_start'), ar = sum(last7, 'ad_rewarded');
+		bars('ads', [['누름', as, 'var(--grey)'], ['끝까지 봄', ar, 'var(--jade)'], ['중간에 닫음', sum(last7, 'ad_dismissed'), 'var(--gold)'], ['광고 없음', sum(last7, 'ad_failed'), 'var(--red)']]);
+		bars('play', [['장 완료', sum(last7, 'ch_clear'), 'var(--jade)'], ['레벨업', sum(last7, 'level_up'), 'var(--blue)'], ['기력 부족', sum(last7, 'energy_out'), 'var(--red)'], ['기력 상점', sum(last7, 'shop_open'), 'var(--gold)'], ['쉬어가기 완료', sum(last7, 'rest_complete'), 'var(--grey)']]);
+		table(days, keys14);
+		var total = Object.keys(days).length;
+		$('meta').textContent = total ? ('기록 ' + total + '일 · ' + now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ' 기준' + (as ? ' · 광고 끝까지 본 비율 ' + Math.round(100 * ar / as) + '%' : '')) : '아직 기록이 없어요. 게임을 한 번 켜고 홈으로 나갔다 오면 첫 숫자가 생겨요.';
+	}
+
+	function load() {
+		$('meta').textContent = '불러오는 중…';
+		fetch(URL, { cache: 'no-store' }).then(function (r) {
+			if (!r.ok) throw new Error(r.status);
+			return r.json();
+		}).then(function (j) {
+			var days = {};
+			(j.documents || []).forEach(function (doc) {
+				var k = doc.name.split('/').pop(), f = doc.fields || {}, o = {};
+				Object.keys(f).forEach(function (n) { o[n] = Number(f[n].integerValue || f[n].doubleValue || 0); });
+				days[k] = o;
+			});
+			render(days);
+		}).catch(function (e) {
+			render({});
+			$('meta').textContent = '숫자를 불러오지 못했어요 (' + e.message + '). 잠시 뒤 새로고침을 눌러 주세요.';
+		});
+	}
+	$('reload').addEventListener('click', load);
+	load();
+}());
+</script>
+</body>
+</html>
