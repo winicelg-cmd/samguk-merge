@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>삼국머지 · 귀여운 삼국지 머지 퍼즐</title>
+<meta name="description" content="도원결의부터 오장원까지, 유비의 살림을 맡아 재료를 합치고 키우는 귀여운 삼국지 머지 퍼즐. 설치 없이 무료로 바로 시작!">
+<meta property="og:type" content="website">
+<meta property="og:title" content="삼국머지 · 귀여운 삼국지 머지 퍼즐">
+<meta property="og:description" content="도원결의부터 오장원까지! 유비와 함께 재료를 합치고 키워 천하를 꿈꿔요. 설치 없이 무료로 바로 시작.">
+<meta property="og:image" content="https://winicelg-cmd.github.io/samguk-merge/og.jpg">
+<meta property="og:url" content="https://winicelg-cmd.github.io/samguk-merge/start.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#d6453a">
+<link rel="icon" href="icon192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root {
+	--cream: #fff8e8; --cream2: #f6e6c4; --brown: #5c3418; --brown2: #8a5a3a;
+	--red: #d6453a; --gold: #f2b63c; --orange: #e86a34; --jade: #2f9e7a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--cream); }
+body {
+	background: var(--cream);
+	color: var(--brown);
+	font-family: 'Jua', 'Noto Sans KR', system-ui, sans-serif;
+	-webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 480px; margin: 0 auto; padding: 0 16px 40px; }
+.hero {
+	position: relative;
+	margin: 0 -16px;
+	aspect-ratio: 720 / 980;
+	background: url(start_bg.jpg) center 92% / cover no-repeat;
+	display: flex; flex-direction: column; align-items: center;
+}
+.hero::after {
+	content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10%;
+	background: linear-gradient(rgba(255,248,232,0), var(--cream));
+}
+.sub { margin-top: 7%; font-size: 15px; color: #fff; text-shadow: 0 1px 3px rgba(92,52,24,.8); }
+.logo { margin: 2px 0 0; font-family: 'Black Han Sans', sans-serif; font-size: clamp(64px, 19vw, 92px); line-height: 1; letter-spacing: 1px; }
+.logo .a { color: #fff; text-shadow: 4px 5px 0 var(--red), 0 0 2px var(--red); }
+.logo .b { color: var(--gold); text-shadow: 4px 5px 0 var(--brown), 0 0 2px var(--brown); }
+.tag {
+	margin-top: 10px; padding: 6px 16px; border-radius: 999px;
+	background: rgba(232,106,52,.95); color: #fff; font-size: 16px;
+}
+.cta { position: relative; z-index: 1; margin-top: 4px; display: grid; gap: 10px; }
+.btn {
+	display: block; text-align: center; text-decoration: none; border-radius: 18px;
+	padding: 16px 14px; font-size: 21px; border: 0; width: 100%; cursor: pointer; font-family: inherit;
+	box-shadow: 0 5px 0 rgba(92,52,24,.35);
+}
+.btn small { display: block; font-size: 13px; opacity: .9; margin-top: 3px; }
+.btn.main { background: var(--orange); color: #fff; }
+.btn.sub2 { background: #fff; color: var(--brown); border: 3px solid var(--gold); }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(92,52,24,.35); }
+.inapp {
+	display: none; margin-top: 12px; padding: 12px 14px; border-radius: 14px;
+	background: #fff3d6; border: 2px dashed var(--gold); font-size: 14px; line-height: 1.5;
+}
+.inapp button { margin-top: 8px; font-size: 16px; padding: 10px; }
+.feat { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 8px; }
+.feat li {
+	background: #fff; border-radius: 14px; padding: 12px 14px; font-size: 16px; line-height: 1.45;
+	box-shadow: 0 2px 0 rgba(92,52,24,.12);
+}
+.feat b { color: var(--red); font-weight: normal; }
+.note { margin-top: 18px; font-size: 13px; line-height: 1.6; color: var(--brown2); }
+.foot { margin-top: 24px; font-size: 12px; color: var(--brown2); text-align: center; }
+.foot a { color: var(--brown2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+	<div class="hero">
+		<div class="sub">184년에서 234년까지, 유비와 함께</div>
+		<h1 class="logo"><span class="a">삼국</span><span class="b">머지</span></h1>
+		<div class="tag">귀여운 삼국지 머지 퍼즐</div>
+	</div>
+
+	<div class="cta">
+		<a class="btn main" href="./">지금 바로 하기<small>설치 없이 무료 · 폰·PC 모두</small></a>
+		<a class="btn sub2" href="https://onesto.re/oneplay/0001010824">원스토어 앱으로 하기<small>계정에 저장돼서 폰을 바꿔도 이어서</small></a>
+	</div>
+
+	<div class="inapp" id="inapp">
+		카카오톡·인스타그램 안에서 열렸어요. 게임은 <b>크롬·삼성 인터넷</b>에서 더 잘 돌아가요.
+		오른쪽 위 <b>⋮</b> 메뉴 → <b>다른 브라우저로 열기</b>를 눌러 주세요.
+		<button class="btn sub2" id="openext" type="button" style="display:none">다른 브라우저로 열기</button>
+	</div>
+
+	<ul class="feat">
+		<li>⚔️ <b>합치고 키우는 머지 퍼즐</b> — 볍씨가 쌀가마로, 쇳덩이가 청룡언월도로!</li>
+		<li>📜 <b>479장의 삼국지</b> — 도원결의부터 오장원까지, 정사 이야기도 함께</li>
+		<li>🐉 <b>귀여운 장수들</b> — 관우·장비·조운·제갈량, 전공을 쌓아 칭호까지</li>
+		<li>🏯 <b>나만의 진영</b> — 시설을 짓고 키우면 꺼 둬도 엽전과 기력이 쌓여요</li>
+	</ul>
+
+	<p class="note">
+		웹에서 하면 진행은 그 기기의 브라우저에 저장돼요. 기기를 바꿀 땐 게임의 <b>설정 → 저장 옮기기</b>에서 코드를 받아 새 기기에 넣으세요.
+	</p>
+
+	<div class="foot">
+		결제 없이 누구나 무료 · <a href="privacy.html">개인정보처리방침</a>
+	</div>
+</div>
+<script>
+(function () {
+	var ua = navigator.userAgent || '';
+	var inApp = /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\//i.test(ua);
+	if (!inApp) return;
+	document.getElementById('inapp').style.display = 'block';
+	// 카카오톡은 바깥 브라우저로 여는 주소가 있어 버튼 하나로 바로 엽니다
+	if (/KAKAOTALK/i.test(ua)) {
+		var b = document.getElementById('openext');
+		b.style.display = 'block';
+		b.onclick = function () {
+			location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+		};
+	}
+}());
+</script>
+</body>
+</html>

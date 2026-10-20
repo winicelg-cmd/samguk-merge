@@ -4,6 +4,12 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>삼국머지</title>
+		<meta name="description" content="도원결의부터 오장원까지, 유비의 살림을 맡아 재료를 합치고 키우는 귀여운 삼국지 머지 퍼즐.">
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="삼국머지 · 귀여운 삼국지 머지 퍼즐">
+		<meta property="og:description" content="도원결의부터 오장원까지! 유비와 함께 재료를 합치고 키워 천하를 꿈꿔요. 설치 없이 무료로 바로 시작.">
+		<meta property="og:image" content="https://winicelg-cmd.github.io/samguk-merge/og.jpg">
+		<meta name="twitter:card" content="summary_large_image">
 		<style>
 html, body, #canvas {
 	margin: 0;
@@ -160,10 +166,18 @@ window.samgukCloud = {
 			.then(function (r) { return r.text().then(function (t) { cb(r.status, t); }); })
 			.catch(function () { cb(0, ''); });
 	},
-	put: function (url, body) {
+	put: function (url, body, cb) {
 		try {
-			fetch(url, { method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }).catch(function () {});
-		} catch (e) {}
+			fetch(url, { method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body })
+				.then(function (r) { if (cb) cb(r.status); })
+				.catch(function () { if (cb) cb(0); });
+		} catch (e) { if (cb) cb(0); }
+	},
+	// 클립보드 읽기 (저장 코드 붙여넣기). 안 되는 브라우저면 빈 글자
+	paste: function (cb) {
+		try {
+			navigator.clipboard.readText().then(function (t) { cb(t || ''); }).catch(function () { cb(''); });
+		} catch (e) { cb(''); }
 	}
 };
 // 리워드 광고(scripts/Ads.gd): 원스토어 SDK가 준비되고 이 앱 버전이 광고를 지원할 때만 씁니다
@@ -244,7 +258,7 @@ S.ready = (async function () {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27182932,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27189012,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
