@@ -200,6 +200,7 @@ th { color: var(--ink2); font-weight: 700; font-size: 13px; }
 			var days = {};
 			(j.documents || []).forEach(function (doc) {
 				var k = doc.name.split('/').pop(), f = doc.fields || {}, o = {};
+				if (!/^20\d{6}$/.test(k) || k > key(new Date())) return;   // 시험용·미래 날짜 문서는 빼고
 				Object.keys(f).forEach(function (n) { o[n] = Number(f[n].integerValue || f[n].doubleValue || 0); });
 				days[k] = o;
 			});
