@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>삼국머지</title>
+		<meta name="description" content="도원결의부터 오장원까지, 유비의 살림을 맡아 재료를 합치고 키우는 귀여운 삼국지 머지 퍼즐.">
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="삼국머지 · 귀여운 삼국지 머지 퍼즐">
+		<meta property="og:description" content="도원결의부터 오장원까지! 유비와 함께 재료를 합치고 키워 천하를 꿈꿔요. 설치 없이 무료로 바로 시작.">
+		<meta property="og:image" content="https://winicelg-cmd.github.io/samguk-merge/og.jpg">
+		<meta name="twitter:card" content="summary_large_image">
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: #fbf3e2;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: #fbf3e2;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: cover;   /* 타이틀 그림으로 화면을 꽉 채움 */
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 60%;
+	height: 14px;
+	margin: 0 auto;
+	accent-color: #e86a34;
+}
+
+#status-text {
+	display: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(10% + 26px);
+	width: fit-content;
+	margin: 0 auto;
+	padding: 6px 16px;
+	border-radius: 999px;
+	background: rgba(255, 248, 232, 0.9);
+	text-align: center;
+	color: #5c3418;
+	font: bold 16px 'Noto Sans KR', sans-serif;
+}
+
+/* 내려받기가 오래 멈추면 나오는 버튼 */
+#status-retry {
+	display: none;
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(10% - 56px);
+	width: fit-content;
+	margin: 0 auto;
+	padding: 10px 22px;
+	border: 0;
+	border-radius: 999px;
+	background: #e86a34;
+	color: #fff;
+	font: bold 16px 'Noto Sans KR', sans-serif;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+		</style>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<meta name="theme-color" content="#fbf3e2">
+<script>
+// 원스토어 H5 Game SDK 연결 상태. Godot(scripts/OneStoreWeb.gd)와 이 객체로 주고받습니다.
+window.samguk = { sdk: null, ready: null, env: null, godot: null, backResult: false };
+// 익명 통계: 브라우저에서는 sendBeacon으로 보냅니다(사전 요청 없이 text/plain 전송)
+// 소리 잠금 풀기: 원스토어 앱(WebView) 안에서는 화면을 만지는 그 순간에만 소리 장치를 켤 수 있는 경우가 있어,
+// 게임이 만든 AudioContext를 모아 두었다가 손가락이 닿을 때마다 바로 깨웁니다. 앱으로 돌아왔을 때(resume)도 깨웁니다.
+(function () {
+	const AC = window.AudioContext || window.webkitAudioContext;
+	if (!AC) return;
+	const list = [];
+	class SamgukAudioContext extends AC {
+		constructor(opts) { super(opts); list.push(this); }
+	}
+	window.AudioContext = SamgukAudioContext;
+	if (window.webkitAudioContext) window.webkitAudioContext = SamgukAudioContext;
+	const wake = function () {
+		list.forEach(function (c) { if (c.state !== 'running' && c.state !== 'closed') c.resume().catch(function () {}); });
+	};
+	['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function (ev) {
+		window.addEventListener(ev, wake, { capture: true, passive: true });
+	});
+	document.addEventListener('visibilitychange', function () { if (!document.hidden) wake(); });
+	window.samgukAudioContexts = list;
+	window.samgukWakeAudio = wake;
+}());
+// 클라우드 저장(scripts/CloudSave.gd): Firestore REST로 읽고 씁니다. 쓰기는 keepalive라 게임을 닫는 순간에도 전송됩니다
+window.samgukCloud = {
+	get: function (url, cb) {
+		fetch(url, { cache: 'no-store' })
+			.then(function (r) { return r.text().then(function (t) { cb(r.status, t); }); })
+			.catch(function () { cb(0, ''); });
+	},
+	put: function (url, body, cb) {
+		try {
+			fetch(url, { method: 'PATCH', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body })
+				.then(function (r) { if (cb) cb(r.status); })
+				.catch(function () { if (cb) cb(0); });
+		} catch (e) { if (cb) cb(0); }
+	},
+	// 날짜별 합계 통계(scripts/DayStats.gd): Firestore commit
+	post: function (url, body, cb) {
+		try {
+			fetch(url, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body })
+				.then(function (r) { if (cb) cb(r.status); })
+				.catch(function () { if (cb) cb(0); });
+		} catch (e) { if (cb) cb(0); }
+	},
+	// 클립보드 읽기 (저장 코드 붙여넣기). 안 되는 브라우저면 빈 글자
+	paste: function (cb) {
+		try {
+			navigator.clipboard.readText().then(function (t) { cb(t || ''); }).catch(function () { cb(''); });
+		} catch (e) { cb(''); }
+	}
+};
+// 리워드 광고(scripts/Ads.gd): 원스토어 SDK가 준비되고 이 앱 버전이 광고를 지원할 때만 씁니다
+window.samgukAds = {
+	supported: function () {
+		const sdk = window.samguk.sdk;
+		try { return !!(sdk && sdk.ads && sdk.ads.isSupported('rewarded')); } catch (e) { return false; }
+	},
+	showRewarded: function (placementId, requestId, cb) {
+		const sdk = window.samguk.sdk;
+		if (!sdk || !sdk.ads) { cb('failed', 'no_sdk'); return; }
+		sdk.ads.showRewardedAsync({ placementId: placementId, requestId: requestId })
+			.then(function (r) { cb((r && r.status) || 'failed', (r && r.reason) || ''); })
+			.catch(function () { cb('failed', 'error'); });
+	}
+};
+window.samgukBeacon = function (url, body) {
+	try { return navigator.sendBeacon(url, new Blob([body], { type: 'text/plain;charset=UTF-8' })); } catch (e) { return false; }
+};
+</script>
+<script type="module">
+const S = window.samguk;
+S.ready = (async function () {
+	let mod;
+	try {
+		mod = await import('https://h5sdk.onestore.net/lib/v1.1.0/onestore-h5-sdk.min.js');
+	} catch (e) {
+		console.warn('원스토어 SDK를 불러오지 못했습니다(원스토어 앱 밖에서 실행 중일 수 있음)', e);
+		return false;
+	}
+	const sdk = mod.createSDK();
+	sdk.on('pause', function (ev) { if (S.godot) S.godot.onPause(ev && ev.reason || ''); });
+	sdk.on('resume', function () {
+		if (window.samgukWakeAudio) window.samgukWakeAudio();
+		if (S.godot) S.godot.onResume();
+	});
+	sdk.on('exit', function () { if (S.godot) S.godot.onExit(); });
+	sdk.onBackPressed(function () {
+		if (!S.godot) return false;
+		S.backResult = false;
+		try { S.godot.onBack(); } catch (e) { return false; }
+		return S.backResult === true;
+	});
+	try {
+		const info = await sdk.initializeAsync();
+		if (info && info.err) { console.warn('원스토어 앱 밖 환경:', info.err); return false; }
+		// 무음(진동) 모드라도 게임 소리는 끄지 않습니다(안드로이드에서 게임 소리는 미디어 볼륨을 따름). 소리는 게임 설정에서 끕니다.
+		S.sdk = sdk; S.env = info || {};
+		// 원스토어 로딩 화면은 정해진 시간 안에 startGameAsync를 못 받으면 "게임을 불러오지 못했습니다"를 띄웁니다.
+		// 게임 파일(약 45MB)은 처음·업데이트 직후·느린 망에서 오래 걸리므로, 연결이 끝나는 즉시 신호를 보내고
+		// 남은 다운로드 진행률은 아래 #status(게임 자체 로딩 화면)가 보여 줍니다.
+		sdk.setLoadingProgress(100);
+		sdk.startGameAsync().catch(function (e) { console.error('startGameAsync 실패', e && e.reason, e && e.message); });
+		return true;
+	} catch (e) {
+		console.warn('원스토어 SDK 초기화 실패', e && e.reason, e && e.message);
+		return false;
+	}
+}());
+</script>
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<div id="status-text">삼국머지 불러오는 중…</div>
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+			<button id="status-retry" type="button" onclick="window.location.reload()">다시 불러오기</button>
+		</div>
+
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27591088,"index.wasm":39509339},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusText = document.getElementById('status-text');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusText.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		// 내려받기가 15초 넘게 그대로면 (모바일 네트워크가 끊긴 경우) 안내와 '다시 불러오기' 버튼을 보입니다
+		const statusRetry = document.getElementById('status-retry');
+		let lastCur = -1, lastChange = Date.now(), lastPct = 0, done = false;
+		const stallTimer = setInterval(function () {
+			if (!initializing || done) { clearInterval(stallTimer); statusRetry.style.display = 'none'; return; }
+			const stalled = Date.now() - lastChange > 15000;
+			statusRetry.style.display = stalled ? 'block' : 'none';
+			if (stalled) statusText.textContent = '연결이 느립니다… ' + lastPct + '%';
+		}, 2000);
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current !== lastCur) { lastCur = current; lastChange = Date.now(); }
+				if (total > 0 && current >= total) done = true;   // 다 받은 뒤 엔진 준비 시간은 멈춤으로 보지 않음
+				if (current > 0 && total > 0) {
+					lastPct = Math.min(99, Math.floor(current * 100 / total));
+					statusProgress.value = current;
+					statusProgress.max = total;
+					statusText.textContent = '삼국머지 불러오는 중… ' + lastPct + '%';
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+
